@@ -5,6 +5,7 @@ import axios from "axios";
 import * as Yup from "yup";
 import { Formik, Field, ErrorMessage, Form } from "formik";
 import DataTable from "react-data-table-component";
+import dayjs from "dayjs";
 //import styles from "./page.module.css";
 
 const issueSchema = Yup.object({
@@ -19,6 +20,7 @@ export default function Home() {
   const [status, setStatus] = useState([]);
   const [priorities, setPriorities] = useState([]);
   const [reload, setReload] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   const [issue, setIssue] = useState({
     title: "",
@@ -106,6 +108,9 @@ export default function Home() {
         console.error("There was an error fetching the issues!", error);
       });
 
+    //
+    setIsClient(true);
+
   }, [reload]);
 
   // Columns for datatable
@@ -136,6 +141,14 @@ export default function Home() {
       sortable: true,
     },
     {
+      name: 'Created Date',
+      selector: (row) => (dayjs(row.createDate).format('YYYY/MM/DD HH:mm')),
+    },
+    {
+      name: 'Resolve Date',
+      selector: (row) => (row.resolveDate != null ? dayjs(row.resolveDate).format('YYYY/MM/DD HH:mm') : 'Unresolved'),
+    },
+    {
       name: 'Actions',
       cell: (row) => (
         <button onClick={() => resolveIssue(row)}>Resolve issue</button>
@@ -143,53 +156,59 @@ export default function Home() {
     }
   ];
 
+  if(isClient){
+    return (
+      <div>
+        <h1>NEW ISSUE</h1>
+  
+        <Formik
+          initialValues={issue}
+          validationSchema={issueSchema}
+          enableReinitialize={true}
+          onSubmit={(values, actions) => {
+            saveIssue(values, actions);
+          }}>
+          {({ values, errors, touched, handleChange, handleBlur, handleSubmit }) => (
+            <Form>
+              <div>
+                <Field type="text" name="title" placeholder="Title" />
+                <ErrorMessage name="title" component="div" />
+              </div>
+              <div>
+                <Field type="text" name="descriptionIssue" placeholder="Description" />
+                <ErrorMessage name="descriptionIssue" component="div" />
+              </div>
+              <div>
+                <Field as="select" name="idPriorityIssue" placeholder="Priority" >
+                  <option value="">Select priority</option>
+                  {
+                    priorities.map((priorityItem) => (
+                      <option key={priorityItem.idPriorityIssue} value={priorityItem.idPriorityIssue}>
+                        {priorityItem.descriptionPriority}
+                      </option>
+                    ))
+                  }
+                </Field>
+                <ErrorMessage name="idPriorityIssue" component="div" />
+              </div>
+              <div>
+                <button type="submit">Enviar</button>
+              </div>
+            </Form>
+          )}
+        </Formik>
+  
+        <h1>ISSUES</h1>
+        <DataTable
+          columns={columns}
+          data={issues}
+          pagination
+        />
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <h1>NEW ISSUE</h1>
-
-      <Formik
-        initialValues={issue}
-        validationSchema={issueSchema}
-        enableReinitialize={true}
-        onSubmit={(values, actions) => {
-          saveIssue(values, actions);
-        }}>
-        {({ values, errors, touched, handleChange, handleBlur, handleSubmit }) => (
-          <Form>
-            <div>
-              <Field type="text" name="title" placeholder="Title" />
-              <ErrorMessage name="title" component="div" />
-            </div>
-            <div>
-              <Field type="text" name="descriptionIssue" placeholder="Description" />
-              <ErrorMessage name="descriptionIssue" component="div" />
-            </div>
-            <div>
-              <Field as="select" name="idPriorityIssue" placeholder="Priority" >
-                <option value="">Select priority</option>
-                {
-                  priorities.map((priorityItem) => (
-                    <option key={priorityItem.idPriorityIssue} value={priorityItem.idPriorityIssue}>
-                      {priorityItem.descriptionPriority}
-                    </option>
-                  ))
-                }
-              </Field>
-              <ErrorMessage name="idPriorityIssue" component="div" />
-            </div>
-            <div>
-              <button type="submit">Enviar</button>
-            </div>
-          </Form>
-        )}
-      </Formik>
-
-      <h1>ISSUES</h1>
-      <DataTable
-        columns={columns}
-        data={issues}
-        pagination
-      />
-    </div>
+    <div>Loading...</div>
   );
 }
