@@ -21,6 +21,7 @@ export default function Home() {
   const [priorities, setPriorities] = useState([]);
   const [reload, setReload] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [filterStatus, setFilterStatus] = useState(0);
 
   const [issue, setIssue] = useState({
     title: "",
@@ -74,12 +75,33 @@ export default function Home() {
     }
   }
 
-  
+  const filterOpenIssues = () => {
+    setFilterStatus(1);
+    setReload(!reload);
+  };
+
+  const filterResolvedIssues = () => {
+    setFilterStatus(2);
+    setReload(!reload);
+  };
+
+  const removeFilterIssues = () => {
+    setFilterStatus(0);
+    setReload(!reload);
+  };
 
   // Load data
   useEffect(() => {
+    var urlGetIssues = "https://localhost:44329/Issue";
+
+    if(filterStatus == 1){
+      urlGetIssues = "https://localhost:44329/Issue/open";
+    }else if(filterStatus == 2){
+      urlGetIssues = "https://localhost:44329/Issue/resolved"
+    }
+
     // Issues
-    axios.get("https://localhost:44329/Issue")
+    axios.get(urlGetIssues)
       .then(response => {
         console.log(response.data);
         setIssues(response.data);
@@ -199,6 +221,9 @@ export default function Home() {
         </Formik>
   
         <h1>ISSUES</h1>
+        <button onClick={filterOpenIssues}>Open</button>
+        <button onClick={filterResolvedIssues}>Resolved</button>
+        { filterStatus != 0 && <button onClick={removeFilterIssues}>Show all</button>}
         <DataTable
           columns={columns}
           data={issues}
