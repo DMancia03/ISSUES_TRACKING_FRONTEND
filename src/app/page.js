@@ -6,7 +6,7 @@ import * as Yup from "yup";
 import { Formik, Field, ErrorMessage, Form } from "formik";
 import DataTable from "react-data-table-component";
 import dayjs from "dayjs";
-//import styles from "./page.module.css";
+import styles from "./custom.css";
 
 const issueSchema = Yup.object({
   title: Yup.string().required("Title is required").max(100, "Title cannot exceed 100 characters"),
@@ -173,7 +173,7 @@ export default function Home() {
     {
       name: 'Actions',
       cell: (row) => (
-        <button onClick={() => resolveIssue(row)}>Resolve issue</button>
+        (row.statusIssue.toLowerCase() !== 'resolved') ? ( <button onClick={() => resolveIssue(row)} className="btn-resolved">Resolve issue</button> ) : (<p></p>)
       ),
     }
   ];
@@ -181,8 +181,6 @@ export default function Home() {
   if(isClient){
     return (
       <div>
-        <h1>NEW ISSUE</h1>
-  
         <Formik
           initialValues={issue}
           validationSchema={issueSchema}
@@ -190,45 +188,53 @@ export default function Home() {
           onSubmit={(values, actions) => {
             saveIssue(values, actions);
           }}>
-          {({ values, errors, touched, handleChange, handleBlur, handleSubmit }) => (
-            <Form>
-              <div>
-                <Field type="text" name="title" placeholder="Title" />
-                <ErrorMessage name="title" component="div" />
-              </div>
-              <div>
-                <Field type="text" name="descriptionIssue" placeholder="Description" />
-                <ErrorMessage name="descriptionIssue" component="div" />
-              </div>
-              <div>
-                <Field as="select" name="idPriorityIssue" placeholder="Priority" >
-                  <option value="">Select priority</option>
-                  {
-                    priorities.map((priorityItem) => (
-                      <option key={priorityItem.idPriorityIssue} value={priorityItem.idPriorityIssue}>
-                        {priorityItem.descriptionPriority}
-                      </option>
-                    ))
-                  }
-                </Field>
-                <ErrorMessage name="idPriorityIssue" component="div" />
-              </div>
-              <div>
-                <button type="submit">Enviar</button>
-              </div>
-            </Form>
+          {() => (
+            <div className="form-container">
+              <h1>NEW ISSUE?</h1>
+              <Form className="form">
+                <div className="input-container">
+                  <label htmlFor="title">Title: *</label>
+                  <Field type="text" name="title" placeholder="Title" className="input-form" />
+                  <ErrorMessage name="title" component="div" className="error-form" />
+                </div>
+                <div className="input-container">
+                  <label htmlFor="descriptionIssue">Description: *</label>
+                  <Field type="text" name="descriptionIssue" placeholder="Description" className="input-form" />
+                  <ErrorMessage name="descriptionIssue" component="div" className="error-form" />
+                </div>
+                <div className="input-container">
+                  <label htmlFor="idPriorityIssue">Priority: *</label>
+                  <Field as="select" name="idPriorityIssue" placeholder="Priority" className="input-form" >
+                    <option value="">Select priority</option>
+                    {
+                      priorities.map((priorityItem) => (
+                        <option key={priorityItem.idPriorityIssue} value={priorityItem.idPriorityIssue}>
+                          {priorityItem.descriptionPriority}
+                        </option>
+                      ))
+                    }
+                  </Field>
+                  <ErrorMessage name="idPriorityIssue" component="div" className="error-form" />
+                </div>
+                <div className="btn-container">
+                  <button type="submit" className="btn-submit">Submit issue</button>
+                </div>
+              </Form>
+            </div>
           )}
         </Formik>
   
-        <h1>ISSUES</h1>
-        <button onClick={filterOpenIssues}>Open</button>
-        <button onClick={filterResolvedIssues}>Resolved</button>
-        { filterStatus != 0 && <button onClick={removeFilterIssues}>Show all</button>}
-        <DataTable
-          columns={columns}
-          data={issues}
-          pagination
-        />
+        <div className="table-container">
+          <h1>ISSUES LIST</h1>
+          <button onClick={filterOpenIssues} className="btn-open">Show only open</button>
+          <button onClick={filterResolvedIssues} className="btn-resolved">Show only resolved</button>
+          { filterStatus != 0 && <button onClick={removeFilterIssues} className="btn-all">Show all</button>}
+          <DataTable
+            columns={columns}
+            data={issues}
+            pagination
+          />
+        </div>
       </div>
     );
   }
